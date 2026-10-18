@@ -1,0 +1,33 @@
+name: PixelPost CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install deps
+        run: |
+          python3 -m pip install -r requirements.txt
+      - name: Compile Python Code
+        run: |
+          python3 -m compileall -q -f pixelpost
+      - name: Run tests
+        run: |
+          python3 -m pytest --junitxml=test-results.xml
+      - name: Upload the test result artifact
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-result
+          path: test-results.xml
+          if-no-files-found: warn
